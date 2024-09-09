@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Ensamblaje</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/archivo">Archivo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reportes">Reportes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ayuda">Ayuda</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container text-center mt-4 title-container">
+        <h1>Simulación de Ensamblaje</h1>
+    </div>
+
+    <!-- Sección para la carga de archivo y la selección de máquina/producto en dos columnas -->
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Columna para cargar archivo -->
+            <div class="col-md-6">
+                <form action="/archivo" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label white-label">Subir archivo XML de configuración</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept=".xml">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cargar archivo</button>
+                </form>
+                
+                {% if message %}
+                    <div class="alert alert-info mt-4" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Columna para seleccionar máquina y producto -->
+            <div class="col-md-6">
+                {% if maquinas.size() > 0 %}
+                    <form method="POST" action="/seleccionar">
+                        <div class="mb-3">
+                            <label for="maquinaSelect" class="form-label white-label">Seleccionar Máquina</label>
+                            <select class="form-select" id="maquinaSelect" name="maquina">
+                                {% for maquina, productos in maquinas %}
+                                    <option value="{{ maquina }}">{{ maquina }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productoSelect" class="form-label white-label">Seleccionar Producto</label>
+                            <select class="form-select" id="productoSelect" name="producto">
+                                {% for maquina, productos in maquinas %}
+                                    {% for producto in productos %}
+                                        <option value="{{ producto }}">{{ producto }}</option>
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">Seleccionar</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<ListaMaquinas>
+    <Maquina>
+        <NombreMaquina>Maquina1</NombreMaquina>
+        <CantidadLineasProduccion>2</CantidadLineasProduccion>
+        <CantidadComponentes>5</CantidadComponentes>
+        <TiempoEnsamblaje>3</TiempoEnsamblaje>
+        <ListadoProductos>
+            <Producto>
+                <nombre>SmartWatch</nombre>
+                <elaboracion>
+                    L1C2 L2C1 L2C2 L1C4
+                </elaboracion>
+            </Producto>
+            <Producto>
+                <nombre>Tablet</nombre>
+                <elaboracion>
+                    L1C1 L1C3 L2C4 L2C5
+                </elaboracion>
+            </Producto>
+        </ListadoProductos>
+    </Maquina>
+    <Maquina>
+        <NombreMaquina>Maquina2</NombreMaquina>
+        <CantidadLineasProduccion>3</CantidadLineasProduccion>
+        <CantidadComponentes>4</CantidadComponentes>
+        <TiempoEnsamblaje>2</TiempoEnsamblaje>
+        <ListadoProductos>
+            <Producto>
+                <nombre>Laptop</nombre>
+                <elaboracion>
+                    L1C1 L3C2 L2C3
+                </elaboracion>
+            </Producto>
+        </ListadoProductos>
+    </Maquina>
+</ListaMaquinas>

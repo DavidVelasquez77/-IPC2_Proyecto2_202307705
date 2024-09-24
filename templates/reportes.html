@@ -1,22 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulación de Ensamblaje</title>
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS (solo estilos) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS para estilo adicional -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Estilo para el cintillo */
+        .cintillo {
+            background-color: #000; /* Cintillo negro */
+            color: #fff; /* Texto blanco */
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg bg-light shadow">
         <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+            <a class="navbar-brand" href="#">Simulación</a>
+            <!-- Navbar links -->
+            <div class="navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link" href="/archivo">Archivo</a>
                     </li>
@@ -31,13 +44,16 @@
         </div>
     </nav>
 
-    <!-- Título Simulación de Ensamblaje -->
-    <div class="container text-center mt-4 title-container">
-        <h1>REPORTES</h1>
+    <!-- Título con cintillo -->
+    <div class="container mx-auto text-center mt-4">
+        <h1 class="text-4xl font-bold text-gray-800 cintillo">Reportes</h1>
     </div>
 
+    <!-- Sección de contenido -->
+    <div class="container mt-8">
+        <p class="text-center">Aquí irá el contenido de la sección de reportes.</p>
+    </div>
 
-    <!-- Bootstrap JS (for navbar toggler) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

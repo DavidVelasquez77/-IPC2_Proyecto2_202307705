@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulación de Ensamblaje</title>
+    <!-- Bootstrap CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Estilo para el cintillo */
+        .cintillo {
+            background-color: #000; /* Cintillo negro */
+            color: #fff; /* Texto blanco */
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-light shadow">
         <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+            <a class="navbar-brand" href="#">Simulación</a>
+            <!-- Navbar links -->
+            <div class="navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link" href="/archivo">Archivo</a>
                     </li>
@@ -29,61 +44,65 @@
         </div>
     </nav>
 
-    <div class="container text-center mt-4 title-container">
-        <h1>Simulación de Ensamblaje</h1>
+    <!-- Título con cintillo -->
+    <div class="container mx-auto text-center mt-4">
+        <h1 class="text-4xl font-bold text-gray-800 cintillo">Simulación de Ensamblaje</h1>
     </div>
 
-    <!-- Sección para la carga de archivo y la selección de máquina/producto en dos columnas -->
-    <div class="container mt-4">
+    <!-- Sección de carga de archivo y selección de máquina/producto -->
+    <div class="container mx-auto mt-8">
         <div class="row">
-            <!-- Columna para cargar archivo -->
-            <div class="col-md-6">
+            <!-- Carga de archivo -->
+            <div class="col-md-6 mb-4">
                 <form action="/archivo" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="formFile" class="form-label white-label">Subir archivo XML de configuración</label>
+                        <label for="formFile" class="form-label text-lg text-white">Subir archivo XML de configuración</label>
                         <input class="form-control" type="file" id="formFile" name="file" accept=".xml">
                     </div>
                     <button type="submit" class="btn btn-primary">Cargar archivo</button>
                 </form>
-                
+
+                <!-- Mensaje de éxito/error -->
                 {% if message %}
-                    <div class="alert alert-info mt-4" role="alert">
-                        {{ message }}
-                    </div>
+                <div class="alert alert-info mt-4" role="alert">
+                    {{ message }}
+                </div>
                 {% endif %}
             </div>
 
-            <!-- Columna para seleccionar máquina y producto -->
+            <!-- Selección de máquina y producto -->
             <div class="col-md-6">
                 {% if maquinas.size() > 0 %}
-                    <form method="POST" action="/seleccionar">
-                        <div class="mb-3">
-                            <label for="maquinaSelect" class="form-label white-label">Seleccionar Máquina</label>
-                            <select class="form-select" id="maquinaSelect" name="maquina">
-                                {% for maquina, productos in maquinas %}
-                                    <option value="{{ maquina }}">{{ maquina }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="productoSelect" class="form-label white-label">Seleccionar Producto</label>
-                            <select class="form-select" id="productoSelect" name="producto">
-                                {% for maquina, productos in maquinas %}
-                                    {% for producto in productos %}
-                                        <option value="{{ producto }}">{{ producto }}</option>
-                                    {% endfor %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success">Seleccionar</button>
-                    </form>
+                <form method="POST" action="/seleccionar">
+                    <!-- Selección de Máquina -->
+                    <div class="mb-3">
+                        <label for="maquinaSelect" class="form-label text-lg">Seleccionar Máquina</label>
+                        <select class="form-select" id="maquinaSelect" name="maquina">
+                            {% for maquina, productos in maquinas %}
+                            <option value="{{ maquina }}">{{ maquina }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Selección de Producto -->
+                    <div class="mb-3">
+                        <label for="productoSelect" class="form-label text-lg">Seleccionar Producto</label>
+                        <select class="form-select" id="productoSelect" name="producto">
+                            {% for maquina, productos in maquinas %}
+                            {% for producto in productos %}
+                            <option value="{{ producto }}">{{ producto }}</option>
+                            {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Construir</button>
+                </form>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

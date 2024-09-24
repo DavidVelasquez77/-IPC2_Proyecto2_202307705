@@ -1,14 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 import xml.etree.ElementTree as ET
-from utils import CustomList
+from utils import CustomList  # Asumimos que CustomList está definida en utils.py
 
 app = Flask(__name__)
 
-
-@app.route('/')
-def index():
-    return redirect(url_for('archivo'))
-
+# Ruta para la página de inicio y carga de archivo
 @app.route('/archivo', methods=['GET', 'POST'])
 def archivo():
     message = None
@@ -46,6 +42,25 @@ def archivo():
                 message = 'Por favor, sube un archivo con extensión .xml.'
 
     return render_template('archivo.html', message=message, maquinas=maquinas)
+
+# Nueva ruta para manejar la simulación y generar la tabla
+@app.route('/construir', methods=['POST'])
+def construir():
+    maquina_seleccionada = request.form.get('maquina')
+    producto_seleccionado = request.form.get('producto')
+    
+    # Simulación de resultados
+    resultados = CustomList()
+    
+    # Generar datos simulados para la tabla (esto puede ser reemplazado por la lógica real)
+    for i in range(5):
+        resultados.add({
+            'tiempo': f'{i+1} horas',
+            'lineas': f'Línea {i+1}'
+        })
+
+    # Renderizamos la plantilla con los resultados generados
+    return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
 
 # Ruta para la página de "Reportes"
 @app.route('/reportes')

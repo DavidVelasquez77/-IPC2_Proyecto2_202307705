@@ -4,6 +4,9 @@ from utils import CustomList  # Asumimos que CustomList está definida en utils.
 
 app = Flask(__name__)
 
+@app.route('/') 
+def index(): 
+    return redirect(url_for('archivo'))
 # Ruta para la página de inicio y carga de archivo
 @app.route('/archivo', methods=['GET', 'POST'])
 def archivo():

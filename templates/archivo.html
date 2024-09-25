@@ -11,10 +11,9 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* Estilo para el cintillo */
         .cintillo {
-            background-color: #000; /* Cintillo negro */
-            color: #fff; /* Texto blanco */
+            background-color: #000;
+            color: #fff;
             display: inline-block;
             padding: 10px 20px;
             border-radius: 5px;
@@ -27,7 +26,6 @@
     <nav class="navbar navbar-expand-lg bg-light shadow">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Simulación</a>
-            <!-- Navbar links -->
             <div class="navbar-collapse">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -73,27 +71,37 @@
             <!-- Selección de máquina y producto -->
             <div class="col-md-6">
                 {% if maquinas.size() > 0 %}
-                <form method="POST" action="/construir">
+                <form method="POST" action="/construir" enctype="multipart/form-data">
                     <!-- Selección de Máquina -->
                     <div class="mb-3">
                         <label for="maquinaSelect" class="form-label text-lg">Seleccionar Máquina</label>
                         <select class="form-select" id="maquinaSelect" name="maquina">
-                            {% for maquina, productos in maquinas %}
-                            <option value="{{ maquina }}">{{ maquina }}</option>
+                            {% for i in range(maquinas.size()) %}
+                                {% set maquina = maquinas.get(i) %}
+                                <option value="{{ maquina.get(0) }}">{{ maquina.get(0) }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
+                
                     <!-- Selección de Producto -->
                     <div class="mb-3">
                         <label for="productoSelect" class="form-label text-lg">Seleccionar Producto</label>
                         <select class="form-select" id="productoSelect" name="producto">
-                            {% for maquina, productos in maquinas %}
-                            {% for producto in productos %}
-                            <option value="{{ producto }}">{{ producto }}</option>
-                            {% endfor %}
+                            {% for i in range(maquinas.size()) %}
+                                {% set maquina = maquinas.get(i) %}
+                                {% set productos = maquina.get(1) %}
+                                {% for j in range(productos.size()) %}
+                                    {% set producto = productos.get(j) %}
+                                    <option value="{{ producto }}">{{ producto }}</option>
+                                {% endfor %}
                             {% endfor %}
                         </select>
+                    </div>
+                
+                    <!-- Campo de archivo en este formulario -->
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label text-lg">Subir archivo XML de configuración</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept=".xml">
                     </div>
 
                     <button type="submit" class="btn btn-success">Construir</button>
@@ -110,16 +118,23 @@
             <thead>
                 <tr>
                     <th>Tiempo</th>
-                    <th>Lineas de Ensamblaje</th>
+                    {% if resultados and resultados.size() > 0 %}
+                        {% for i in range(resultados.get(0).lineas.size()) %}
+                        <th>Línea de ensamblaje {{ i + 1 }}</th>
+                        {% endfor %}
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% if resultados %}
-                {% for resultado in resultados %}
-                <tr>
-                    <td>{{ resultado.tiempo }}</td>
-                    <td>{{ resultado.lineas }}</td>
-                </tr>
+                {% if resultados and resultados.size() > 0 %}
+                {% for i in range(resultados.size()) %}
+                    {% set resultado = resultados.get(i) %}
+                    <tr>
+                        <td>{{ resultado.tiempo }}</td>
+                        {% for j in range(resultado.lineas.size()) %}
+                            <td>{{ resultado.lineas.get(j) }}</td>
+                        {% endfor %}
+                    </tr>
                 {% endfor %}
                 {% else %}
                 <tr>

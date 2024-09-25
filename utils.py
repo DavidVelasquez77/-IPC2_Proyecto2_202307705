@@ -33,7 +33,7 @@ class CustomList:
         return self.tamano
 
     def __iter__(self):
-        self.actual = self.primero
+        self.actual = None
         return self
 
     def __next__(self):
@@ -43,3 +43,8 @@ class CustomList:
             return valor
         else:
             raise StopIteration
+
+class Resultado:
+    def __init__(self, tiempo, lineas):
+        self.tiempo = tiempo  # Representa el tiempo (ej: "1er Segundo")
+        self.lineas = lineas  # Es un CustomList con las acciones por línea de ensamblaje

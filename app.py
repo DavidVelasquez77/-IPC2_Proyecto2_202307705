@@ -1,18 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for
 import xml.etree.ElementTree as ET
-from utils import CustomList  # Asumimos que CustomList está definida en utils.py
+from utils import CustomList, Resultado, Nodo  # Asegúrate de que estos estén definidos en utils.py
 
 app = Flask(__name__)
 
-@app.route('/') 
-def index(): 
+@app.route('/')
+def index():
     return redirect(url_for('archivo'))
-# Ruta para la página de inicio y carga de archivo
+
 @app.route('/archivo', methods=['GET', 'POST'])
 def archivo():
     message = None
-    maquinas = CustomList()  # Usamos CustomList en lugar de una lista nativa
-    
+    maquinas = CustomList()
+
     if request.method == 'POST':
         if 'file' not in request.files:
             message = 'No se encontró ningún archivo.'
@@ -25,19 +25,19 @@ def archivo():
                     tree = ET.parse(file)
                     root = tree.getroot()
 
-                    # Recorrer las máquinas en el archivo XML
                     for maquina in root.findall('Maquina'):
                         nombre_maquina = maquina.find('NombreMaquina').text
                         productos = CustomList()
-                        
-                        # Recorrer los productos de cada máquina
+
                         for producto in maquina.find('ListadoProductos').findall('Producto'):
                             nombre_producto = producto.find('nombre').text
                             productos.add(nombre_producto)
-                        
-                        # Almacenar la máquina y sus productos en CustomList
-                        maquinas.add((nombre_maquina, productos))
-                    
+
+                        maquina_info = CustomList()
+                        maquina_info.add(nombre_maquina)
+                        maquina_info.add(productos)
+                        maquinas.add(maquina_info)
+
                     message = 'Archivo XML cargado correctamente.'
                 except ET.ParseError:
                     message = 'Error al procesar el archivo XML.'
@@ -46,31 +46,79 @@ def archivo():
 
     return render_template('archivo.html', message=message, maquinas=maquinas)
 
-# Nueva ruta para manejar la simulación y generar la tabla
+def obtener_linea_y_componente(paso):
+    linea = ""
+    componente = ""
+    estado = "linea"
+
+    for char in paso:
+        if char == 'L':
+            estado = "linea"
+        elif char == 'C':
+            estado = "componente"
+        elif estado == "linea":
+            linea += char
+        elif estado == "componente":
+            componente += char
+
+    return int(linea), int(componente)
+
 @app.route('/construir', methods=['POST'])
 def construir():
     maquina_seleccionada = request.form.get('maquina')
     producto_seleccionado = request.form.get('producto')
-    
-    # Simulación de resultados
     resultados = CustomList()
-    
-    # Generar datos simulados para la tabla (esto puede ser reemplazado por la lógica real)
-    for i in range(5):
-        resultados.add({
-            'tiempo': f'{i+1} horas',
-            'lineas': f'Línea {i+1}'
-        })
 
-    # Renderizamos la plantilla con los resultados generados
+    file = request.files.get('file')
+    if file and file.filename.endswith('.xml'):
+        try:
+            tree = ET.parse(file)
+            root = tree.getroot()
+
+            for maquina in root.findall('Maquina'):
+                nombre_maquina = maquina.find('NombreMaquina').text
+                if nombre_maquina == maquina_seleccionada:
+                    tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
+                    num_lineas = int(maquina.find('CantidadLineasProduccion').text)
+
+                    for producto in maquina.find('ListadoProductos').findall('Producto'):
+                        nombre_producto = producto.find('nombre').text
+                        if nombre_producto == producto_seleccionado:
+                            elaboracion = producto.find('elaboracion').text.strip().split()
+
+                            lineas_ensamblaje = CustomList()
+                            for _ in range(num_lineas):
+                                lineas_ensamblaje.add(CustomList())
+
+                            for paso in elaboracion:
+                                linea, componente = obtener_linea_y_componente(paso)
+                                linea_index = linea - 1
+                                
+                                lineas_ensamblaje.get(linea_index).add(f"Ensamblar componente {componente}")
+
+                            for segundo in range(tiempo_ensamblaje):
+                                fila_tiempo = Resultado(f"{segundo + 1}er. Segundo", CustomList())
+
+                                for linea_index in range(num_lineas):
+                                    linea_actual = lineas_ensamblaje.get(linea_index)
+                                    if segundo < linea_actual.size():
+                                        accion = linea_actual.get(segundo)
+                                    else:
+                                        accion = "No hacer nada"
+                                    
+                                    fila_tiempo.lineas.add(accion)
+                                
+                                resultados.add(fila_tiempo)
+
+        except ET.ParseError:
+            return render_template('archivo.html', message='Error al procesar el archivo XML.', resultados=CustomList())
+
     return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
 
-# Ruta para la página de "Reportes"
 @app.route('/reportes')
 def reportes():
     return render_template('reportes.html')
 
-# Ruta para la página de "Ayuda"
 @app.route('/ayuda')
 def ayuda():
     return render_template('ayuda.html')

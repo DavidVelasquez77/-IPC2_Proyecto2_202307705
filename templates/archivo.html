@@ -71,7 +71,7 @@
             <!-- Selección de máquina y producto -->
             <div class="col-md-6">
                 {% if maquinas.size() > 0 %}
-                <form method="POST" action="/construir" enctype="multipart/form-data">
+                <form method="POST" action="/construir">
                     <!-- Selección de Máquina -->
                     <div class="mb-3">
                         <label for="maquinaSelect" class="form-label text-lg">Seleccionar Máquina</label>
@@ -97,13 +97,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                
-                    <!-- Campo de archivo en este formulario -->
-                    <div class="mb-3">
-                        <label for="formFile" class="form-label text-lg">Subir archivo XML de configuración</label>
-                        <input class="form-control" type="file" id="formFile" name="file" accept=".xml">
-                    </div>
-
+                    
                     <button type="submit" class="btn btn-success">Construir</button>
                 </form>
                 {% endif %}

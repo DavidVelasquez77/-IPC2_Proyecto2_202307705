@@ -5,7 +5,7 @@
         <CantidadLineasProduccion>2</CantidadLineasProduccion>
         <CantidadComponentes>5</CantidadComponentes>
         <TiempoEnsamblaje>7</TiempoEnsamblaje>
-        <ListadoProductos>
+        <ListadoProductos>  
             <Producto>
                 <nombre>SmartWatch</nombre>
                 <elaboracion>

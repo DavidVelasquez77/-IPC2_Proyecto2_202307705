@@ -81,17 +81,13 @@ def construir():
                     for _ in range(num_lineas):
                         brazos.add(0)
                     
-                    for segundo in range(tiempo_ensamblaje):
-                        fila_tiempo = Resultado(f"{segundo + 1}{'er' if segundo == 0 else 'do' if segundo == 1 else 'er'}. Segundo", CustomList())
-                        
-                        acciones_realizadas = CustomList()
+                    for segundo in range(1, tiempo_ensamblaje + 1):
+                        fila_tiempo = Resultado(f"{segundo}{'er' if segundo == 1 else 'do' if segundo == 2 else 'er'}. Segundo", CustomList())
                         for _ in range(num_lineas):
-                            acciones_realizadas.add(False)
+                            fila_tiempo.lineas.add("No hacer nada")
                         
                         for instruccion_index in range(instrucciones.size()):
                             instruccion_actual = instrucciones.get(instruccion_index)
-                            
-                            # Skip completed instructions
                             if instruccion_actual == "COMPLETED":
                                 continue
                             
@@ -99,44 +95,32 @@ def construir():
                             
                             if linea_actual <= num_lineas:
                                 brazo_actual = brazos.get(linea_actual - 1)
-                                accion = "No hacer nada"
                                 
-                                if not acciones_realizadas.get(linea_actual - 1):
-                                    if brazo_actual < componente_actual:
-                                        brazo_actual += 1
-                                        accion = f"Mover brazo – componente {brazo_actual}"
-                                        acciones_realizadas.update(linea_actual - 1, True)
-                                    elif brazo_actual > componente_actual:
-                                        brazo_actual -= 1
-                                        accion = f"Mover brazo – componente {brazo_actual}"
-                                        acciones_realizadas.update(linea_actual - 1, True)
-                                    elif brazo_actual == componente_actual:
-                                        # Verificar si todas las instrucciones anteriores se han completado
-                                        can_assemble = True
-                                        for prev_index in range(instruccion_index):
-                                            prev_instruccion = instrucciones.get(prev_index)
-                                            if prev_instruccion != "COMPLETED":
-                                                prev_linea, prev_componente = obtener_linea_y_componente(prev_instruccion)
-                                                prev_brazo = brazos.get(prev_linea - 1)
-                                                if prev_brazo != prev_componente:
-                                                    can_assemble = False
-                                                    break
-                                        
-                                        if can_assemble:
-                                            accion = f"Ensamblar componente {componente_actual}"
-                                            acciones_realizadas.update(linea_actual - 1, True)
-                                            instrucciones.update(instruccion_index, "COMPLETED")
-                                
-                                brazos.update(linea_actual - 1, brazo_actual)
-                                
-                                if fila_tiempo.lineas.size() < linea_actual:
-                                    fila_tiempo.lineas.add(accion)
-                                else:
-                                    fila_tiempo.lineas.update(linea_actual - 1, accion)
+                                if brazo_actual < componente_actual:
+                                    brazo_actual += 1
+                                    fila_tiempo.lineas.update(linea_actual - 1, f"Mover brazo – componente {brazo_actual}")
+                                    brazos.update(linea_actual - 1, brazo_actual)
+                                    break
+                                elif brazo_actual > componente_actual:
+                                    brazo_actual -= 1
+                                    fila_tiempo.lineas.update(linea_actual - 1, f"Mover brazo – componente {brazo_actual}")
+                                    brazos.update(linea_actual - 1, brazo_actual)
+                                    break
+                                elif brazo_actual == componente_actual:
+                                    can_assemble = True
+                                    for prev_index in range(instruccion_index):
+                                        prev_instruccion = instrucciones.get(prev_index)
+                                        if prev_instruccion != "COMPLETED":
+                                            can_assemble = False
+                                            break
+                                    
+                                    if can_assemble:
+                                        fila_tiempo.lineas.update(linea_actual - 1, f"Ensamblar componente {componente_actual}")
+                                        instrucciones.update(instruccion_index, "COMPLETED")
+                                        break
                         
                         resultados.add(fila_tiempo)
                         
-                        # Verificar si todas las instrucciones se han completado
                         all_completed = True
                         for i in range(instrucciones.size()):
                             if instrucciones.get(i) != "COMPLETED":

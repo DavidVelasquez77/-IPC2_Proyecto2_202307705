@@ -50,23 +50,6 @@ def archivo():
     return render_template('archivo.html', message=message, maquinas=maquinas)
 
 
-def obtener_linea_y_componente(paso):
-    linea = ""
-    componente = ""
-    estado = "linea"
-
-    for char in paso:
-        if char == 'L':
-            estado = "linea"
-        elif char == 'C':
-            estado = "componente"
-        elif estado == "linea":
-            linea += char
-        elif estado == "componente":
-            componente += char
-
-    return int(linea), int(componente)
-
 @app.route('/construir', methods=['POST'])
 def construir():
     maquina_seleccionada = request.form.get('maquina')
@@ -89,32 +72,98 @@ def construir():
                 nombre_producto = producto.find('nombre').text
                 if nombre_producto == producto_seleccionado:
                     elaboracion = producto.find('elaboracion').text.strip().split()
-
-                    lineas_ensamblaje = CustomList()
-                    for _ in range(num_lineas):
-                        lineas_ensamblaje.add(CustomList())
-
+                    
+                    instrucciones = CustomList()
                     for paso in elaboracion:
-                        linea, componente = obtener_linea_y_componente(paso)
-                        linea_index = linea - 1
-                        
-                        lineas_ensamblaje.get(linea_index).add(f"Ensamblar componente {componente}")
-
+                        instrucciones.add(paso)
+                    
+                    brazos = CustomList()
+                    for _ in range(num_lineas):
+                        brazos.add(0)
+                    
                     for segundo in range(tiempo_ensamblaje):
-                        fila_tiempo = Resultado(f"{segundo + 1}er. Segundo", CustomList())
-
-                        for linea_index in range(num_lineas):
-                            linea_actual = lineas_ensamblaje.get(linea_index)
-                            if segundo < linea_actual.size():
-                                accion = linea_actual.get(segundo)
-                            else:
-                                accion = "No hacer nada"
+                        fila_tiempo = Resultado(f"{segundo + 1}{'er' if segundo == 0 else 'do' if segundo == 1 else 'er'}. Segundo", CustomList())
+                        
+                        acciones_realizadas = CustomList()
+                        for _ in range(num_lineas):
+                            acciones_realizadas.add(False)
+                        
+                        for instruccion_index in range(instrucciones.size()):
+                            instruccion_actual = instrucciones.get(instruccion_index)
                             
-                            fila_tiempo.lineas.add(accion)
+                            # Skip completed instructions
+                            if instruccion_actual == "COMPLETED":
+                                continue
+                            
+                            linea_actual, componente_actual = obtener_linea_y_componente(instruccion_actual)
+                            
+                            if linea_actual <= num_lineas:
+                                brazo_actual = brazos.get(linea_actual - 1)
+                                accion = "No hacer nada"
+                                
+                                if not acciones_realizadas.get(linea_actual - 1):
+                                    if brazo_actual < componente_actual:
+                                        brazo_actual += 1
+                                        accion = f"Mover brazo – componente {brazo_actual}"
+                                        acciones_realizadas.update(linea_actual - 1, True)
+                                    elif brazo_actual > componente_actual:
+                                        brazo_actual -= 1
+                                        accion = f"Mover brazo – componente {brazo_actual}"
+                                        acciones_realizadas.update(linea_actual - 1, True)
+                                    elif brazo_actual == componente_actual:
+                                        # Verificar si todas las instrucciones anteriores se han completado
+                                        can_assemble = True
+                                        for prev_index in range(instruccion_index):
+                                            prev_instruccion = instrucciones.get(prev_index)
+                                            if prev_instruccion != "COMPLETED":
+                                                prev_linea, prev_componente = obtener_linea_y_componente(prev_instruccion)
+                                                prev_brazo = brazos.get(prev_linea - 1)
+                                                if prev_brazo != prev_componente:
+                                                    can_assemble = False
+                                                    break
+                                        
+                                        if can_assemble:
+                                            accion = f"Ensamblar componente {componente_actual}"
+                                            acciones_realizadas.update(linea_actual - 1, True)
+                                            instrucciones.update(instruccion_index, "COMPLETED")
+                                
+                                brazos.update(linea_actual - 1, brazo_actual)
+                                
+                                if fila_tiempo.lineas.size() < linea_actual:
+                                    fila_tiempo.lineas.add(accion)
+                                else:
+                                    fila_tiempo.lineas.update(linea_actual - 1, accion)
                         
                         resultados.add(fila_tiempo)
+                        
+                        # Verificar si todas las instrucciones se han completado
+                        all_completed = True
+                        for i in range(instrucciones.size()):
+                            if instrucciones.get(i) != "COMPLETED":
+                                all_completed = False
+                                break
+                        
+                        if all_completed:
+                            break
 
     return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
+
+def obtener_linea_y_componente(paso):
+    linea = ""
+    componente = ""
+    estado = "linea"
+
+    for char in paso:
+        if char == 'L':
+            estado = "linea"
+        elif char == 'C':
+            estado = "componente"
+        elif estado == "linea":
+            linea += char
+        elif estado == "componente":
+            componente += char
+
+    return int(linea), int(componente)
 
 @app.route('/reportes')
 def reportes():

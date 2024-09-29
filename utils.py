@@ -1,3 +1,4 @@
+# utils.py
 class Nodo:
     def __init__(self, valor):
         self.valor = valor
@@ -29,8 +30,20 @@ class CustomList:
             contador += 1
         return None  # Si el índice está fuera de rango
 
+    def update(self, index, new_value):
+        actual = self.primero
+        contador = 0
+        while actual:
+            if contador == index:
+                actual.valor = new_value  # Actualiza el valor en el índice dado
+                return True
+            actual = actual.siguiente
+            contador += 1
+        return False  # Si el índice está fuera de rango
+
     def size(self):
         return self.tamano
+
 
     def __iter__(self):
         self.actual = None

@@ -4,7 +4,7 @@
         <NombreMaquina>Maquina1</NombreMaquina>
         <CantidadLineasProduccion>2</CantidadLineasProduccion>
         <CantidadComponentes>5</CantidadComponentes>
-        <TiempoEnsamblaje>7</TiempoEnsamblaje>
+        <TiempoEnsamblaje>8</TiempoEnsamblaje>
         <ListadoProductos>  
             <Producto>
                 <nombre>SmartWatch</nombre>

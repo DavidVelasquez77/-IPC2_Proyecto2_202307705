@@ -128,6 +128,9 @@ def construir():
                                         instrucciones.update(instruccion_index, "COMPLETED")
                                         ensamblaje_realizado = True
                                         acciones_realizadas.update(linea_actual - 1, True)
+                                    else:
+                                        fila_tiempo.lineas.update(linea_actual - 1, "No hacer nada")
+                                        acciones_realizadas.update(linea_actual - 1, True)
                         
                         resultados.add(fila_tiempo)
                         
@@ -143,7 +146,6 @@ def construir():
                         segundo += 1
 
     return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
-
 
 
 def obtener_linea_y_componente(paso):

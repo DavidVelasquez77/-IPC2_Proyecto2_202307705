@@ -65,7 +65,6 @@ def construir():
     for maquina in root.findall('Maquina'):
         nombre_maquina = maquina.find('NombreMaquina').text
         if nombre_maquina == maquina_seleccionada:
-            tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
             num_lineas = int(maquina.find('CantidadLineasProduccion').text)
 
             for producto in maquina.find('ListadoProductos').findall('Producto'):
@@ -82,7 +81,7 @@ def construir():
                         brazos.add(0)
                     
                     segundo = 1
-                    while segundo <= tiempo_ensamblaje:
+                    while True:
                         fila_tiempo = Resultado(f"{segundo}{'er' if segundo == 1 else 'do' if segundo == 2 else 'er'}. Segundo", CustomList())
                         for _ in range(num_lineas):
                             fila_tiempo.lineas.add("No hacer nada")
@@ -123,10 +122,6 @@ def construir():
                                         fila_tiempo.lineas.update(linea, f"Ensamblar componente {componente_actual}")
                                         instrucciones.update(instruccion_index, "COMPLETED")
                                         ensamblaje_realizado = True
-                                    else:
-                                        fila_tiempo.lineas.update(linea, "No hacer nada")
-                                else:
-                                    fila_tiempo.lineas.update(linea, "No hacer nada")
                         
                         resultados.add(fila_tiempo)
                         
@@ -142,7 +137,6 @@ def construir():
                         segundo += 1
 
     return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
-
 
 def obtener_linea_y_componente(paso):
     linea = ""

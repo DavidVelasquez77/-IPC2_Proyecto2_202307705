@@ -28,24 +28,39 @@ def archivo():
             elif file and file.filename.endswith('.xml'):
                 try:
                     xml_content = file.read()
-                    session['xml_content'] = xml_content.decode('utf-8')  
                     root = ET.fromstring(xml_content)
 
-                    global_maquinas = CustomList()  # Reset maquinas
+                    # Procesar el nuevo XML y agregar/actualizar información
                     for maquina in root.findall('Maquina'):
                         nombre_maquina = maquina.find('NombreMaquina').text
                         productos = CustomList()
 
-                        for producto in maquina.find('ListadoProductos').findall('Producto'):
-                            nombre_producto = producto.find('nombre').text
-                            productos.add(nombre_producto)
+                        # Buscar si la máquina ya existe
+                        maquina_existente = None
+                        for i in range(global_maquinas.size()):
+                            if global_maquinas.get(i).get(0) == nombre_maquina:
+                                maquina_existente = global_maquinas.get(i)
+                                break
 
-                        maquina_info = CustomList()
-                        maquina_info.add(nombre_maquina)
-                        maquina_info.add(productos)
-                        global_maquinas.add(maquina_info)
+                        if maquina_existente:
+                            # Actualizar productos existentes
+                            productos_existentes = maquina_existente.get(1)
+                            for producto in maquina.find('ListadoProductos').findall('Producto'):
+                                nombre_producto = producto.find('nombre').text
+                                if nombre_producto not in productos_existentes:
+                                    productos_existentes.add(nombre_producto)
+                        else:
+                            # Agregar nueva máquina
+                            for producto in maquina.find('ListadoProductos').findall('Producto'):
+                                nombre_producto = producto.find('nombre').text
+                                productos.add(nombre_producto)
 
-                    message = 'Archivo XML cargado correctamente.'
+                            maquina_info = CustomList()
+                            maquina_info.add(nombre_maquina)
+                            maquina_info.add(productos)
+                            global_maquinas.add(maquina_info)
+
+                    message = 'Archivo XML cargado y agregado correctamente.'
                 except ET.ParseError:
                     message = 'Error al procesar el archivo XML.'
             else:

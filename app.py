@@ -6,14 +6,17 @@ import io
 app = Flask(__name__)
 app.secret_key = 'una_clave_secreta_muy_segura'  # Necesario para usar sesiones
 
+# Variable global para almacenar las máquinas
+global_maquinas = CustomList()
+
 @app.route('/')
 def index():
     return redirect(url_for('archivo'))
 
 @app.route('/archivo', methods=['GET', 'POST'])
 def archivo():
+    global global_maquinas
     message = None
-    maquinas = CustomList()
 
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -28,6 +31,7 @@ def archivo():
                     session['xml_content'] = xml_content.decode('utf-8')  
                     root = ET.fromstring(xml_content)
 
+                    global_maquinas = CustomList()  # Reset maquinas
                     for maquina in root.findall('Maquina'):
                         nombre_maquina = maquina.find('NombreMaquina').text
                         productos = CustomList()
@@ -39,7 +43,7 @@ def archivo():
                         maquina_info = CustomList()
                         maquina_info.add(nombre_maquina)
                         maquina_info.add(productos)
-                        maquinas.add(maquina_info)
+                        global_maquinas.add(maquina_info)
 
                     message = 'Archivo XML cargado correctamente.'
                 except ET.ParseError:
@@ -47,15 +51,25 @@ def archivo():
             else:
                 message = 'Por favor, sube un archivo con extensión .xml.'
 
-    return render_template('archivo.html', message=message, maquinas=maquinas)
+    maquina_seleccionada = session.get('maquina_seleccionada', '')
+    producto_seleccionado = session.get('producto_seleccionado', '')
 
+    return render_template('archivo.html', message=message, maquinas=global_maquinas,
+                           maquina_seleccionada=maquina_seleccionada,
+                           producto_seleccionado=producto_seleccionado)
 
 @app.route('/construir', methods=['POST'])
 def construir():
+    global global_maquinas
     maquina_seleccionada = request.form.get('maquina')
-    producto_seleccionado = request.form.get('producto')    
+    producto_seleccionado = request.form.get('producto')
+    
+    # Guardar las selecciones en la sesión
+    session['maquina_seleccionada'] = maquina_seleccionada
+    session['producto_seleccionado'] = producto_seleccionado
+    
     resultados = CustomList()
-    tiempo_total = 0  # Inicializa una variable para el tiempo total
+    tiempo_total = 0
 
     if 'xml_content' not in session:
         return render_template('archivo.html', message='Por favor, carga un archivo XML primero.', resultados=CustomList())
@@ -143,16 +157,15 @@ def construir():
                                 break
                         
                         if all_completed:
-                            tiempo_total = segundo  # Asigna el tiempo total de ensamblaje
-                            break   
+                            tiempo_total = segundo
+                            break
                         
                         segundo += 1
 
-    # Pasar el tiempo total al template
-    return render_template('archivo.html', resultados=resultados, maquinas=CustomList(), 
-                            maquina_seleccionada=maquina_seleccionada, producto_seleccionado=producto_seleccionado,
-                            tiempo_total=tiempo_total)
-
+    return render_template('archivo.html', resultados=resultados, maquinas=global_maquinas,
+                           maquina_seleccionada=maquina_seleccionada, 
+                           producto_seleccionado=producto_seleccionado,
+                           tiempo_total=tiempo_total)
 
 def obtener_linea_y_componente(paso):
     linea = ""
@@ -181,10 +194,10 @@ def ayuda():
 
 @app.route('/reset', methods=['POST'])
 def reset():
-    # Limpiar la sesión para eliminar cualquier dato cargado previamente
+    global global_maquinas
+    global_maquinas = CustomList()
     session.clear()
     return redirect(url_for('archivo'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)

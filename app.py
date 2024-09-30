@@ -179,23 +179,25 @@ def construir():
                         
                         segundo += 1
 
-    # Filtrar resultados basados en el tiempo seleccionado
-    if tiempo_seleccionado.lower() == 'optimo':
-        tiempo_mostrado = tiempo_total
-    else:
-        try:
-            tiempo_mostrado = int(tiempo_seleccionado)
-            if tiempo_mostrado > tiempo_total:
-                tiempo_mostrado = tiempo_total
-        except ValueError:
-            tiempo_mostrado = tiempo_total
+                    # Determinar el tiempo a mostrar
+                    if tiempo_seleccionado.lower() == 'optimo':
+                        tiempo_mostrado = tiempo_total
+                    else:
+                        try:
+                            tiempo_mostrado = int(tiempo_seleccionado)
+                        except ValueError:
+                            tiempo_mostrado = tiempo_total
 
-    resultados_filtrados = CustomList()
-    for i in range(resultados.size()):
-        if i < tiempo_mostrado:
-            resultados_filtrados.add(resultados.get(i))
+                    # Si el tiempo solicitado es mayor al tiempo total,
+                    # agregar filas adicionales con "No hace nada"
+                    if tiempo_mostrado > tiempo_total:
+                        for segundo_adicional in range(tiempo_total + 1, tiempo_mostrado + 1):
+                            fila_tiempo = Resultado(f"{segundo_adicional}{'er' if segundo_adicional == 1 else 'do' if segundo_adicional == 2 else 'er'}. Segundo", CustomList())
+                            for _ in range(num_lineas):
+                                fila_tiempo.lineas.add("No hace nada")
+                            resultados.add(fila_tiempo)
 
-    return render_template('archivo.html', resultados=resultados_filtrados, maquinas=global_maquinas,
+    return render_template('archivo.html', resultados=resultados, maquinas=global_maquinas,
                            maquina_seleccionada=maquina_seleccionada, 
                            producto_seleccionado=producto_seleccionado,
                            tiempo_total=tiempo_total,

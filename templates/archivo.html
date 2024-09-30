@@ -78,18 +78,17 @@
                 </form>
             </div>
 
-            <!-- Selección de máquina y producto -->
+            <!-- Selección de máquina, producto y tiempo -->
             <div class="col-md-6">
                 {% if maquinas.size() > 0 %}
                 <form method="POST" action="/construir">
                     <!-- Selección de Máquina -->
                     <div class="mb-3">
-                        <!-- templates/archivo.html -->
                         <label for="maquinaSelect" class="form-label text-lg label-blanco">Seleccionar Máquina</label>
                         <select class="form-select" id="maquinaSelect" name="maquina">
                             {% for i in range(maquinas.size()) %}
                                 {% set maquina = maquinas.get(i) %}
-                                <option value="{{ maquina.get(0) }}">{{ maquina.get(0) }}</option>
+                                <option value="{{ maquina.get(0) }}" {% if maquina.get(0) == maquina_seleccionada %}selected{% endif %}>{{ maquina.get(0) }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -103,10 +102,16 @@
                                 {% set productos = maquina.get(1) %}
                                 {% for j in range(productos.size()) %}
                                     {% set producto = productos.get(j) %}
-                                    <option value="{{ producto }}">{{ producto }}</option>
+                                    <option value="{{ producto }}" {% if producto == producto_seleccionado %}selected{% endif %}>{{ producto }}</option>
                                 {% endfor %}
                             {% endfor %}
                         </select>
+                    </div>
+
+                    <!-- Nuevo campo para selección de tiempo -->
+                    <div class="mb-3">
+                        <label for="tiempoInput" class="form-label text-lg">Tiempo (segundos u "optimo")</label>
+                        <input type="text" class="form-control" id="tiempoInput" name="tiempo" value="optimo">
                     </div>
                     
                     <button type="submit" class="btn btn-success">Construir</button>
@@ -126,7 +131,6 @@
                 {{ maquina_seleccionada }} - {{ producto_seleccionado }}
             </h1>
         </div>
-        
         {% endif %}
 
         <table class="table table-striped table-bordered">
@@ -159,13 +163,15 @@
             </tbody>
         </table>
 
-        <!-- Mostrar tiempo total de ensamblaje -->
+        <!-- Mostrar tiempo total y tiempo mostrado -->
         {% if tiempo_total %}
         <div class="alert alert-success text-center mt-4">
-            <h4>Tiempo óptimo de ensamblaje es de: {{ tiempo_total }} segundos</h4>
+            <h4>Tiempo óptimo de ensamblaje: {{ tiempo_total }} segundos</h4>
+            {% if tiempo_mostrado != tiempo_total %}
+            <h4>Tiempo mostrado: {{ tiempo_mostrado }} segundos</h4>
+            {% endif %}
         </div>
         {% endif %}
-        
     </div>
 
 </body>

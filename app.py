@@ -60,6 +60,7 @@ def archivo():
                             maquina_info.add(productos)
                             global_maquinas.add(maquina_info)
 
+                    session['xml_content'] = xml_content.decode('utf-8')
                     message = 'Archivo XML cargado y agregado correctamente.'
                 except ET.ParseError:
                     message = 'Error al procesar el archivo XML.'
@@ -78,10 +79,11 @@ def construir():
     global global_maquinas
     maquina_seleccionada = request.form.get('maquina')
     producto_seleccionado = request.form.get('producto')
+    tiempo_seleccionado = request.form.get('tiempo', 'optimo')
     
     # Guardar las selecciones en la sesión
     session['maquina_seleccionada'] = maquina_seleccionada
-    session['producto_seleccionado'] = producto_seleccionado
+    session['producto_seleccionada'] = producto_seleccionado
     
     resultados = CustomList()
     tiempo_total = 0
@@ -177,10 +179,27 @@ def construir():
                         
                         segundo += 1
 
-    return render_template('archivo.html', resultados=resultados, maquinas=global_maquinas,
+    # Filtrar resultados basados en el tiempo seleccionado
+    if tiempo_seleccionado.lower() == 'optimo':
+        tiempo_mostrado = tiempo_total
+    else:
+        try:
+            tiempo_mostrado = int(tiempo_seleccionado)
+            if tiempo_mostrado > tiempo_total:
+                tiempo_mostrado = tiempo_total
+        except ValueError:
+            tiempo_mostrado = tiempo_total
+
+    resultados_filtrados = CustomList()
+    for i in range(resultados.size()):
+        if i < tiempo_mostrado:
+            resultados_filtrados.add(resultados.get(i))
+
+    return render_template('archivo.html', resultados=resultados_filtrados, maquinas=global_maquinas,
                            maquina_seleccionada=maquina_seleccionada, 
                            producto_seleccionado=producto_seleccionado,
-                           tiempo_total=tiempo_total)
+                           tiempo_total=tiempo_total,
+                           tiempo_mostrado=tiempo_mostrado)
 
 def obtener_linea_y_componente(paso):
     linea = ""

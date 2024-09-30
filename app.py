@@ -142,11 +142,13 @@ def construir():
                                 break
                         
                         if all_completed:
-                            break
+                            break   
                         
                         segundo += 1
 
-    return render_template('archivo.html', resultados=resultados, maquinas=CustomList())
+    return render_template('archivo.html', resultados=resultados, maquinas=CustomList(), 
+                            maquina_seleccionada=maquina_seleccionada, producto_seleccionado=producto_seleccionado)
+
 
 def obtener_linea_y_componente(paso):
     linea = ""
@@ -172,6 +174,13 @@ def reportes():
 @app.route('/ayuda')
 def ayuda():
     return render_template('ayuda.html')
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    # Limpiar la sesión para eliminar cualquier dato cargado previamente
+    session.clear()
+    return redirect(url_for('archivo'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

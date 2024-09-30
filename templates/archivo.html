@@ -66,6 +66,13 @@
                     {{ message }}
                 </div>
                 {% endif %}
+            </div>  
+
+            <!-- Botón para inicializar datos -->
+            <div class="col-md-6 mb-4">
+                <form action="/reset" method="POST">
+                    <button type="submit" class="btn btn-danger">Inicializar datos</button>
+                </form>
             </div>
 
             <!-- Selección de máquina y producto -->
@@ -107,7 +114,17 @@
 
     <!-- Tabla dinámica -->
     <div class="container mx-auto mt-4">
-        <h2 class="text-xl font-bold">Resultados de la Simulación</h2>
+        <!-- Mostrar nombre de la máquina y producto seleccionados -->
+        {% if maquina_seleccionada and producto_seleccionado %}
+        <div class="alert alert-secondary text-center py-4">
+            <h1 class="display-4 font-weight-bold text-uppercase" 
+                style="color: #FFFFFF; font-weight: bold; letter-spacing: 2px; text-shadow: 0 0 10px #2559DF, 0 0 20px #2559DF, 0 0 30px #2559DF, 0 0 40px #2559DF;">
+                {{ maquina_seleccionada }} - {{ producto_seleccionado }}
+            </h1>
+        </div>
+        
+        {% endif %}
+
         <table class="table table-striped table-bordered">
             <thead>
                 <tr>

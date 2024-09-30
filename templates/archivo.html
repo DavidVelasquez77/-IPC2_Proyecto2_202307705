@@ -154,6 +154,14 @@
                 {% endif %}
             </tbody>
         </table>
+
+        <!-- Mostrar tiempo total de ensamblaje -->
+        {% if tiempo_total %}
+        <div class="alert alert-success text-center mt-4">
+            <h4>Tiempo óptimo de ensamblaje es de: {{ tiempo_total }} segundos</h4>
+        </div>
+        {% endif %}
+        
     </div>
 
 </body>

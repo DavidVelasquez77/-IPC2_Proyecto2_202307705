@@ -55,6 +55,7 @@ def construir():
     maquina_seleccionada = request.form.get('maquina')
     producto_seleccionado = request.form.get('producto')    
     resultados = CustomList()
+    tiempo_total = 0  # Inicializa una variable para el tiempo total
 
     if 'xml_content' not in session:
         return render_template('archivo.html', message='Por favor, carga un archivo XML primero.', resultados=CustomList())
@@ -142,12 +143,15 @@ def construir():
                                 break
                         
                         if all_completed:
+                            tiempo_total = segundo  # Asigna el tiempo total de ensamblaje
                             break   
                         
                         segundo += 1
 
+    # Pasar el tiempo total al template
     return render_template('archivo.html', resultados=resultados, maquinas=CustomList(), 
-                            maquina_seleccionada=maquina_seleccionada, producto_seleccionado=producto_seleccionado)
+                            maquina_seleccionada=maquina_seleccionada, producto_seleccionado=producto_seleccionado,
+                            tiempo_total=tiempo_total)
 
 
 def obtener_linea_y_componente(paso):

@@ -18,6 +18,9 @@
             padding: 10px 20px;
             border-radius: 5px;
         }
+        .form-label {
+            color: white;
+        }
     </style>
 </head>
 
@@ -81,7 +84,8 @@
                 <form method="POST" action="/construir">
                     <!-- Selección de Máquina -->
                     <div class="mb-3">
-                        <label for="maquinaSelect" class="form-label text-lg">Seleccionar Máquina</label>
+                        <!-- templates/archivo.html -->
+                        <label for="maquinaSelect" class="form-label text-lg label-blanco">Seleccionar Máquina</label>
                         <select class="form-select" id="maquinaSelect" name="maquina">
                             {% for i in range(maquinas.size()) %}
                                 {% set maquina = maquinas.get(i) %}

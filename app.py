@@ -66,6 +66,7 @@ def construir():
         nombre_maquina = maquina.find('NombreMaquina').text
         if nombre_maquina == maquina_seleccionada:
             num_lineas = int(maquina.find('CantidadLineasProduccion').text)
+            tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
 
             for producto in maquina.find('ListadoProductos').findall('Producto'):
                 nombre_producto = producto.find('nombre').text
@@ -81,10 +82,14 @@ def construir():
                         brazos.add(0)
                     
                     segundo = 1
+                    ensamblaje_actual = CustomList()
+                    for _ in range(num_lineas):
+                        ensamblaje_actual.add(0)
+
                     while True:
                         fila_tiempo = Resultado(f"{segundo}{'er' if segundo == 1 else 'do' if segundo == 2 else 'er'}. Segundo", CustomList())
                         for _ in range(num_lineas):
-                            fila_tiempo.lineas.add("No hacer nada")
+                            fila_tiempo.lineas.add("No hace nada")
                         
                         ensamblaje_realizado = False
                         
@@ -104,11 +109,11 @@ def construir():
                                 
                                 if brazo_actual < componente_actual:
                                     brazo_actual += 1
-                                    fila_tiempo.lineas.update(linea, f"Mover brazo – componente {brazo_actual}")
+                                    fila_tiempo.lineas.update(linea, f"Mover brazo – Componente {brazo_actual}")
                                     brazos.update(linea, brazo_actual)
                                 elif brazo_actual > componente_actual:
                                     brazo_actual -= 1
-                                    fila_tiempo.lineas.update(linea, f"Mover brazo – componente {brazo_actual}")
+                                    fila_tiempo.lineas.update(linea, f"Mover brazo – Componente {brazo_actual}")
                                     brazos.update(linea, brazo_actual)
                                 elif brazo_actual == componente_actual and not ensamblaje_realizado:
                                     # Verificar si es el turno de esta instrucción
@@ -119,9 +124,14 @@ def construir():
                                             break
                                     
                                     if can_assemble:
-                                        fila_tiempo.lineas.update(linea, f"Ensamblar componente {componente_actual}")
-                                        instrucciones.update(instruccion_index, "COMPLETED")
-                                        ensamblaje_realizado = True
+                                        if ensamblaje_actual.get(linea) < tiempo_ensamblaje:
+                                            fila_tiempo.lineas.update(linea, f"Ensamblar - Componente {componente_actual}")
+                                            ensamblaje_actual.update(linea, ensamblaje_actual.get(linea) + 1)
+                                            ensamblaje_realizado = True
+                                        
+                                        if ensamblaje_actual.get(linea) == tiempo_ensamblaje:
+                                            instrucciones.update(instruccion_index, "COMPLETED")
+                                            ensamblaje_actual.update(linea, 0)
                         
                         resultados.add(fila_tiempo)
                         

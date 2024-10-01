@@ -174,19 +174,7 @@
         </div>
         {% endif %}
 
-        <!-- Botón para generar el grafo -->
-        {% if maquina_seleccionada and producto_seleccionado %}
-        <div class="text-center mt-4">
-            <form action="/grafo" method="GET">
-                <button type="submit" class="btn btn-info">Generar Grafo de Ensamblaje</button>
-            </form>
-        </div>
 
-        <!-- Mostrar el grafo si ha sido generado -->
-        <div class="text-center mt-4">
-            <img src="/grafo" alt="Grafo de Ensamblaje" class="img-fluid">
-        </div>
-        {% endif %}
     </div>
 
 </body>

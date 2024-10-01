@@ -18,6 +18,7 @@
             padding: 10px 20px;
             border-radius: 5px;
         }
+
         .form-label {
             color: white;
         }
@@ -69,7 +70,7 @@
                     {{ message }}
                 </div>
                 {% endif %}
-            </div>  
+            </div>
 
             <!-- Botón para inicializar datos -->
             <div class="col-md-6 mb-4">
@@ -87,23 +88,23 @@
                         <label for="maquinaSelect" class="form-label text-lg label-blanco">Seleccionar Máquina</label>
                         <select class="form-select" id="maquinaSelect" name="maquina">
                             {% for i in range(maquinas.size()) %}
-                                {% set maquina = maquinas.get(i) %}
-                                <option value="{{ maquina.get(0) }}" {% if maquina.get(0) == maquina_seleccionada %}selected{% endif %}>{{ maquina.get(0) }}</option>
+                            {% set maquina = maquinas.get(i) %}
+                            <option value="{{ maquina.get(0) }}" {% if maquina.get(0) == maquina_seleccionada %}selected{% endif %}>{{ maquina.get(0) }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                
+
                     <!-- Selección de Producto -->
                     <div class="mb-3">
                         <label for="productoSelect" class="form-label text-lg">Seleccionar Producto</label>
                         <select class="form-select" id="productoSelect" name="producto">
                             {% for i in range(maquinas.size()) %}
-                                {% set maquina = maquinas.get(i) %}
-                                {% set productos = maquina.get(1) %}
-                                {% for j in range(productos.size()) %}
-                                    {% set producto = productos.get(j) %}
-                                    <option value="{{ producto }}" {% if producto == producto_seleccionado %}selected{% endif %}>{{ producto }}</option>
-                                {% endfor %}
+                            {% set maquina = maquinas.get(i) %}
+                            {% set productos = maquina.get(1) %}
+                            {% for j in range(productos.size()) %}
+                            {% set producto = productos.get(j) %}
+                            <option value="{{ producto }}" {% if producto == producto_seleccionado %}selected{% endif %}>{{ producto }}</option>
+                            {% endfor %}
                             {% endfor %}
                         </select>
                     </div>
@@ -113,7 +114,7 @@
                         <label for="tiempoInput" class="form-label text-lg">Tiempo (segundos u "optimo")</label>
                         <input type="text" class="form-control" id="tiempoInput" name="tiempo" value="optimo">
                     </div>
-                    
+
                     <button type="submit" class="btn btn-success">Construir</button>
                 </form>
                 {% endif %}
@@ -138,22 +139,22 @@
                 <tr>
                     <th>Tiempo</th>
                     {% if resultados and resultados.size() > 0 %}
-                        {% for i in range(resultados.get(0).lineas.size()) %}
-                        <th>Línea de ensamblaje {{ i + 1 }}</th>
-                        {% endfor %}
+                    {% for i in range(resultados.get(0).lineas.size()) %}
+                    <th>Línea de ensamblaje {{ i + 1 }}</th>
+                    {% endfor %}
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% if resultados and resultados.size() > 0 %}
                 {% for i in range(resultados.size()) %}
-                    {% set resultado = resultados.get(i) %}
-                    <tr>
-                        <td>{{ resultado.tiempo }}</td>
-                        {% for j in range(resultado.lineas.size()) %}
-                            <td>{{ resultado.lineas.get(j) }}</td>
-                        {% endfor %}
-                    </tr>
+                {% set resultado = resultados.get(i) %}
+                <tr>
+                    <td>{{ resultado.tiempo }}</td>
+                    {% for j in range(resultado.lineas.size()) %}
+                    <td>{{ resultado.lineas.get(j) }}</td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
                 {% else %}
                 <tr>
@@ -170,6 +171,20 @@
             {% if tiempo_mostrado != tiempo_total %}
             <h4>Tiempo mostrado: {{ tiempo_mostrado }} segundos</h4>
             {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Botón para generar el grafo -->
+        {% if maquina_seleccionada and producto_seleccionado %}
+        <div class="text-center mt-4">
+            <form action="/grafo" method="GET">
+                <button type="submit" class="btn btn-info">Generar Grafo de Ensamblaje</button>
+            </form>
+        </div>
+
+        <!-- Mostrar el grafo si ha sido generado -->
+        <div class="text-center mt-4">
+            <img src="/grafo" alt="Grafo de Ensamblaje" class="img-fluid">
         </div>
         {% endif %}
     </div>

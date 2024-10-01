@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
 import xml.etree.ElementTree as ET
 from utils import CustomList, Resultado, Nodo
+from graphviz import Digraph  # Importamos Graphviz para crear el grafo
 import io
 
 app = Flask(__name__)
@@ -219,6 +220,39 @@ def obtener_linea_y_componente(paso):
             componente += char
 
     return int(linea), int(componente)
+
+@app.route('/grafo')
+def generar_grafo():
+    maquina_seleccionada = session.get('maquina_seleccionada', None)
+    producto_seleccionado = session.get('producto_seleccionada', None)
+
+    if not maquina_seleccionada or not producto_seleccionado:
+        return "No se ha seleccionado una máquina o producto."
+
+    # Crear el grafo usando graphviz
+    dot = Digraph(comment='Proceso de Elaboración', format='png')
+    
+    # Aquí generamos los nodos y las conexiones entre ellos según los pasos de elaboración
+    xml_content = session['xml_content']
+    root = ET.fromstring(xml_content)
+
+    for maquina in root.findall('Maquina'):
+        nombre_maquina = maquina.find('NombreMaquina').text
+        if nombre_maquina == maquina_seleccionada:
+            for producto in maquina.find('ListadoProductos').findall('Producto'):
+                nombre_producto = producto.find('nombre').text
+                if nombre_producto == producto_seleccionado:
+                    elaboracion = producto.find('elaboracion').text.strip().split()
+                    # Añadir nodos y enlaces
+                    for idx, paso in enumerate(elaboracion):
+                        if idx < len(elaboracion) - 1:
+                            dot.node(paso, paso)
+                            dot.node(elaboracion[idx+1], elaboracion[idx+1])
+                            dot.edge(paso, elaboracion[idx+1])
+
+    # Guardar el grafo en un archivo temporal y retornarlo como imagen
+    graph_image = dot.pipe()
+    return send_file(io.BytesIO(graph_image), mimetype='image/png')
 
 @app.route('/reportes')
 def reportes():

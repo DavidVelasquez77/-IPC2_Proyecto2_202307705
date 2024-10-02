@@ -301,7 +301,12 @@ def construir():
         try:
             tiempo_mostrado = int(tiempo_seleccionado)
             if tiempo_mostrado > tiempo_total:
-                tiempo_mostrado = tiempo_total
+                # Crear resultados vacíos para el tiempo extra
+                for i in range(tiempo_total + 1, tiempo_mostrado + 1):
+                    fila_tiempo = Resultado(f"{i}er. Segundo", CustomList())
+                    for _ in range(num_lineas):
+                        fila_tiempo.lineas.add("No hace nada")
+                    resultados.add(fila_tiempo)
         except ValueError:
             tiempo_mostrado = tiempo_total
 
@@ -310,7 +315,7 @@ def construir():
         if i < tiempo_mostrado:
             resultados_filtrados.add(resultados.get(i))
 
-   # Después de procesar los resultados, generar el grafo
+    # Después de procesar los resultados, generar el grafo
     instrucciones_originales = CustomList()
     elaboracion_list = CustomList()
     for paso in elaboracion:
@@ -336,8 +341,8 @@ def construir():
                           producto_seleccionado=producto_seleccionado,
                           tiempo_total=tiempo_total,
                           tiempo_mostrado=tiempo_mostrado,
-                          graph_image=graph_image) 
-
+                          graph_image=graph_image)
+    
 def obtener_linea_y_componente(paso):
     linea = ""
     componente = ""

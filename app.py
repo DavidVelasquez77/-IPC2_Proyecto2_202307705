@@ -76,31 +76,38 @@ def archivo():
                            producto_seleccionado=producto_seleccionado)
     
 
-def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_total):
+def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_total, resultados):
     if tiempo_actual > tiempo_total:
         return None
-    
-    # Crear una copia de las instrucciones originales
-    instrucciones = CustomList()
-    for i in range(instrucciones_originales.size()):
-        instrucciones.add(instrucciones_originales.get(i))
-    
-    # Simular el ensamblaje hasta el tiempo actual
-    for segundo in range(1, tiempo_actual + 1):
-        for i in range(instrucciones.size()):
-            if instrucciones.get(i) != "COMPLETED":
-                instrucciones.update(i, "COMPLETED")
-                break
 
+    
     # Crear el grafo
     dot = Digraph(comment='Assembly Steps')
     dot.attr(rankdir='LR')  # Establecer dirección de izquierda a derecha
     
-    # Filtrar las instrucciones no completadas
+    # Determinar qué pasos están realmente completados
     pasos_restantes = CustomList()
-    for i in range(instrucciones.size()):
-        if instrucciones.get(i) != "COMPLETED":
-            pasos_restantes.add(instrucciones.get(i))
+    pasos_completados = CustomList()
+    
+    for i in range(instrucciones_originales.size()):
+        paso = instrucciones_originales.get(i)
+        esta_completado = True
+        
+        # Verificar en los resultados si este paso aún está en proceso de ensamblaje
+        for j in range(resultados.size()):
+            resultado = resultados.get(j)
+            for k in range(resultado.lineas.size()):
+                accion = resultado.lineas.get(k)
+                if "Ensamblar" in accion and obtener_componente_de_accion(accion) == obtener_componente_de_paso(paso):
+                    esta_completado = False
+                    break
+            if not esta_completado:
+                break
+        
+        if not esta_completado:
+            pasos_restantes.add(paso)
+        else:
+            pasos_completados.add(paso)
     
     # Si no hay pasos restantes, no generar el grafo
     if pasos_restantes.size() == 0:
@@ -115,6 +122,18 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
     
     return dot
 
+def obtener_componente_de_accion(accion):
+    # Extraer el número de componente de una acción como "Ensamblar - Componente 2"
+    partes = accion.split()
+    for parte in partes:
+        if parte.isdigit():
+            return int(parte)
+    return None
+
+def obtener_componente_de_paso(paso):
+    # Extraer el número de componente de un paso como "L1C2"
+    _, componente = obtener_linea_y_componente(paso)
+    return componente
 @app.route('/construir', methods=['POST'])
 def construir():
     global global_maquinas
@@ -247,7 +266,7 @@ def construir():
     
     tiempo_mostrado = tiempo_total if tiempo_seleccionado.lower() == 'optimo' else int(tiempo_seleccionado)
     
-    dot = generate_assembly_graph(instrucciones_originales, tiempo_mostrado, tiempo_total)
+    dot = generate_assembly_graph(instrucciones_originales, tiempo_mostrado, tiempo_total, resultados_filtrados)
     if dot:
         graph_filename = f'static/assembly_graph_{tiempo_mostrado}.gv'
         dot.render(graph_filename, format='png', cleanup=True)
@@ -262,7 +281,7 @@ def construir():
                           producto_seleccionado=producto_seleccionado,
                           tiempo_total=tiempo_total,
                           tiempo_mostrado=tiempo_mostrado,
-                          graph_image=graph_image)
+                          graph_image=graph_image) 
 
 def obtener_linea_y_componente(paso):
     linea = ""

@@ -80,46 +80,42 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
     if tiempo_actual > tiempo_total:
         return None
 
-    
     # Crear el grafo
     dot = Digraph(comment='Assembly Steps')
     dot.attr(rankdir='LR')  # Establecer dirección de izquierda a derecha
-    
-    # Determinar qué pasos están realmente completados
-    pasos_restantes = CustomList()
-    pasos_completados = CustomList()
-    
+
+    # Listas para los pasos pendientes (aún no completados o en proceso)
+    pasos_pendientes = CustomList()
+
     for i in range(instrucciones_originales.size()):
         paso = instrucciones_originales.get(i)
-        esta_completado = True
-        
-        # Verificar en los resultados si este paso aún está en proceso de ensamblaje
+        esta_completado = False
+
+        # Verificar si el paso ya ha sido completamente ensamblado
         for j in range(resultados.size()):
             resultado = resultados.get(j)
             for k in range(resultado.lineas.size()):
                 accion = resultado.lineas.get(k)
                 if "Ensamblar" in accion and obtener_componente_de_accion(accion) == obtener_componente_de_paso(paso):
-                    esta_completado = False
+                    esta_completado = True  # El paso ya ha sido ensamblado
                     break
-            if not esta_completado:
+            if esta_completado:
                 break
-        
+
+        # Si el paso NO está completo, lo agregamos a los pendientes
         if not esta_completado:
-            pasos_restantes.add(paso)
-        else:
-            pasos_completados.add(paso)
-    
-    # Si no hay pasos restantes, no generar el grafo
-    if pasos_restantes.size() == 0:
+            pasos_pendientes.add(paso)
+
+    # Si no hay pasos pendientes, no generar el grafo
+    if pasos_pendientes.size() == 0:
         return None
-    
-    # Crear nodos y conexiones en línea
-    for i in range(pasos_restantes.size()):
-        paso_actual = pasos_restantes.get(i)
+
+    # Crear nodos y conexiones en el grafo para los pasos pendientes
+    for i in range(pasos_pendientes.size()):
+        paso_actual = pasos_pendientes.get(i)
         dot.node(str(i), paso_actual, shape='box')
         if i > 0:
             dot.edge(str(i-1), str(i))
-    
     return dot
 
 def obtener_componente_de_accion(accion):
@@ -134,6 +130,9 @@ def obtener_componente_de_paso(paso):
     # Extraer el número de componente de un paso como "L1C2"
     _, componente = obtener_linea_y_componente(paso)
     return componente
+
+
+
 @app.route('/construir', methods=['POST'])
 def construir():
     global global_maquinas

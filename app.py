@@ -81,29 +81,78 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
         return None
 
     # Crear el grafo
-    dot = Digraph(comment='Assembly Steps')
-    dot.attr(rankdir='LR')  # Establecer dirección de izquierda a derecha
+    dot = Digraph(comment='Pending Assembly Steps')
+    dot.attr(rankdir='LR')
 
-    # Listas para los pasos pendientes (aún no completados o en proceso)
+    # Listas personalizadas para los pasos pendientes y conteo de ensamblajes
     pasos_pendientes = CustomList()
+    componentes_necesarios = CustomList()
+    componentes_realizados = CustomList()
 
+    # Primero, contar cuántos ensamblajes necesita cada componente
     for i in range(instrucciones_originales.size()):
         paso = instrucciones_originales.get(i)
-        esta_completado = False
-
-        # Verificar si el paso ya ha sido completamente ensamblado
-        for j in range(resultados.size()):
-            resultado = resultados.get(j)
-            for k in range(resultado.lineas.size()):
-                accion = resultado.lineas.get(k)
-                if "Ensamblar" in accion and obtener_componente_de_accion(accion) == obtener_componente_de_paso(paso):
-                    esta_completado = True  # El paso ya ha sido ensamblado
-                    break
-            if esta_completado:
+        componente = obtener_componente_de_paso(paso)
+        
+        # Buscar si ya existe este componente en la lista
+        encontrado = False
+        for j in range(componentes_necesarios.size()):
+            comp = componentes_necesarios.get(j)
+            if comp.componente == componente:
+                comp.cantidad += 1
+                encontrado = True
                 break
+        
+        # Si no se encontró, agregar nuevo
+        if not encontrado:
+            nuevo_comp = ComponenteContador(componente, 1)
+            componentes_necesarios.add(nuevo_comp)
 
-        # Si el paso NO está completo, lo agregamos a los pendientes
-        if not esta_completado:
+    # Luego, contar cuántos ensamblajes se han realizado
+    for i in range(resultados.size()):
+        resultado = resultados.get(i)
+        for j in range(resultado.lineas.size()):
+            accion = resultado.lineas.get(j)
+            if "Ensamblar" in accion:
+                componente = obtener_componente_de_accion(accion)
+                
+                # Buscar si ya existe este componente en la lista de realizados
+                encontrado = False
+                for k in range(componentes_realizados.size()):
+                    comp = componentes_realizados.get(k)
+                    if comp.componente == componente:
+                        comp.cantidad += 1
+                        encontrado = True
+                        break
+                
+                # Si no se encontró, agregar nuevo
+                if not encontrado:
+                    nuevo_comp = ComponenteContador(componente, 1)
+                    componentes_realizados.add(nuevo_comp)
+
+    # Determinar qué pasos están pendientes
+    for i in range(instrucciones_originales.size()):
+        paso = instrucciones_originales.get(i)
+        componente_actual = obtener_componente_de_paso(paso)
+        
+        # Obtener cantidad necesaria y realizada para este componente
+        cantidad_necesaria = 0
+        cantidad_realizada = 0
+        
+        for j in range(componentes_necesarios.size()):
+            comp = componentes_necesarios.get(j)
+            if comp.componente == componente_actual:
+                cantidad_necesaria = comp.cantidad
+                break
+        
+        for j in range(componentes_realizados.size()):
+            comp = componentes_realizados.get(j)
+            if comp.componente == componente_actual:
+                cantidad_realizada = comp.cantidad
+                break
+        
+        # Si faltan ensamblajes, agregar a pendientes
+        if cantidad_realizada < cantidad_necesaria:
             pasos_pendientes.add(paso)
 
     # Si no hay pasos pendientes, no generar el grafo
@@ -116,7 +165,14 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
         dot.node(str(i), paso_actual, shape='box')
         if i > 0:
             dot.edge(str(i-1), str(i))
+    
     return dot
+
+# Clase auxiliar para contar componentes
+class ComponenteContador:
+    def __init__(self, componente, cantidad):
+        self.componente = componente
+        self.cantidad = cantidad
 
 def obtener_componente_de_accion(accion):
     # Extraer el número de componente de una acción como "Ensamblar - Componente 2"

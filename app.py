@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import xml.etree.ElementTree as ET
 from utils import CustomList, Resultado, Nodo
 import io
+from graphviz import Digraph
 
 app = Flask(__name__)
 app.secret_key = 'una_clave_secreta_muy_segura'  # Necesario para usar sesiones
@@ -73,6 +74,46 @@ def archivo():
     return render_template('archivo.html', message=message, maquinas=global_maquinas,
                            maquina_seleccionada=maquina_seleccionada,
                            producto_seleccionado=producto_seleccionado)
+    
+
+def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_total):
+    if tiempo_actual > tiempo_total:
+        return None
+    
+    # Crear una copia de las instrucciones originales
+    instrucciones = CustomList()
+    for i in range(instrucciones_originales.size()):
+        instrucciones.add(instrucciones_originales.get(i))
+    
+    # Simular el ensamblaje hasta el tiempo actual
+    for segundo in range(1, tiempo_actual + 1):
+        for i in range(instrucciones.size()):
+            if instrucciones.get(i) != "COMPLETED":
+                instrucciones.update(i, "COMPLETED")
+                break
+
+    # Crear el grafo
+    dot = Digraph(comment='Assembly Steps')
+    dot.attr(rankdir='LR')  # Establecer dirección de izquierda a derecha
+    
+    # Filtrar las instrucciones no completadas
+    pasos_restantes = CustomList()
+    for i in range(instrucciones.size()):
+        if instrucciones.get(i) != "COMPLETED":
+            pasos_restantes.add(instrucciones.get(i))
+    
+    # Si no hay pasos restantes, no generar el grafo
+    if pasos_restantes.size() == 0:
+        return None
+    
+    # Crear nodos y conexiones en línea
+    for i in range(pasos_restantes.size()):
+        paso_actual = pasos_restantes.get(i)
+        dot.node(str(i), paso_actual, shape='box')
+        if i > 0:
+            dot.edge(str(i-1), str(i))
+    
+    return dot
 
 @app.route('/construir', methods=['POST'])
 def construir():
@@ -195,11 +236,33 @@ def construir():
         if i < tiempo_mostrado:
             resultados_filtrados.add(resultados.get(i))
 
-    return render_template('archivo.html', resultados=resultados_filtrados, maquinas=global_maquinas,
-                           maquina_seleccionada=maquina_seleccionada, 
-                           producto_seleccionado=producto_seleccionado,
-                           tiempo_total=tiempo_total,
-                           tiempo_mostrado=tiempo_mostrado)
+   # Después de procesar los resultados, generar el grafo
+    instrucciones_originales = CustomList()
+    elaboracion_list = CustomList()
+    for paso in elaboracion:
+        elaboracion_list.add(paso)
+    
+    for i in range(elaboracion_list.size()):
+        instrucciones_originales.add(elaboracion_list.get(i))
+    
+    tiempo_mostrado = tiempo_total if tiempo_seleccionado.lower() == 'optimo' else int(tiempo_seleccionado)
+    
+    dot = generate_assembly_graph(instrucciones_originales, tiempo_mostrado, tiempo_total)
+    if dot:
+        graph_filename = f'static/assembly_graph_{tiempo_mostrado}.gv'
+        dot.render(graph_filename, format='png', cleanup=True)
+        graph_image = f'assembly_graph_{tiempo_mostrado}.gv.png'
+    else:
+        graph_image = None
+    
+    return render_template('archivo.html', 
+                          resultados=resultados_filtrados, 
+                          maquinas=global_maquinas,
+                          maquina_seleccionada=maquina_seleccionada, 
+                          producto_seleccionado=producto_seleccionado,
+                          tiempo_total=tiempo_total,
+                          tiempo_mostrado=tiempo_mostrado,
+                          graph_image=graph_image)
 
 def obtener_linea_y_componente(paso):
     linea = ""

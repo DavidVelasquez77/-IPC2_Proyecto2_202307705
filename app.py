@@ -10,6 +10,9 @@ app.secret_key = 'una_clave_secreta_muy_segura'  # Necesario para usar sesiones
 # Variable global para almacenar las máquinas
 global_maquinas = CustomList()
 
+# Agregar una variable global para el historial
+global_historial = CustomList()
+
 @app.route('/')
 def index():
     return redirect(url_for('archivo'))
@@ -203,10 +206,18 @@ def obtener_componente_de_paso(paso):
     _, componente = obtener_linea_y_componente(paso)
     return componente
 
+class HistorialEntry:
+    def __init__(self, maquina, producto, tiempo_total, resultados):
+        self.maquina = maquina
+        self.producto = producto
+        self.tiempo_total = tiempo_total
+        self.resultados = resultados
 
 @app.route('/construir', methods=['POST'])
 def construir():
     global global_maquinas
+    global global_historial
+    
     maquina_seleccionada = request.form.get('maquina')
     producto_seleccionado = request.form.get('producto')
     tiempo_seleccionado = request.form.get('tiempo', 'optimo')
@@ -350,6 +361,15 @@ def construir():
     else:
         graph_image = None
     
+ # Al final de la función, antes del return, agregar:
+    entrada_historial = HistorialEntry(
+        maquina_seleccionada,
+        producto_seleccionado,
+        tiempo_total,
+        resultados_filtrados
+    )
+    global_historial.add(entrada_historial)
+    
     return render_template('archivo.html', 
                           resultados=resultados_filtrados, 
                           maquinas=global_maquinas,
@@ -357,7 +377,7 @@ def construir():
                           producto_seleccionado=producto_seleccionado,
                           tiempo_total=tiempo_total,
                           tiempo_mostrado=tiempo_mostrado,
-                          graph_image=graph_image) 
+                          graph_image=graph_image)
 
 
 def obtener_linea_y_componente(paso):
@@ -377,9 +397,10 @@ def obtener_linea_y_componente(paso):
 
     return int(linea), int(componente)
 
+# Modificar la ruta de reportes para mostrar el historial
 @app.route('/reportes')
 def reportes():
-    return render_template('reportes.html')
+    return render_template('reportes.html', historial=global_historial)
 
 @app.route('/ayuda')
 def ayuda():
@@ -388,7 +409,9 @@ def ayuda():
 @app.route('/reset', methods=['POST'])
 def reset():
     global global_maquinas
+    global global_historial
     global_maquinas = CustomList()
+    global_historial = CustomList()
     session.clear()
     return redirect(url_for('archivo'))
 

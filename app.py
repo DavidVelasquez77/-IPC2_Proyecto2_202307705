@@ -310,22 +310,30 @@ def construir():
                         segundo += 1
 
     # Filtrar resultados basados en el tiempo seleccionado
-    if tiempo_seleccionado.lower() == 'optimo':
+    try:
+        tiempo_mostrado = int(tiempo_seleccionado)
+    except ValueError:
         tiempo_mostrado = tiempo_total
-    else:
-        try:
-            tiempo_mostrado = int(tiempo_seleccionado)
-            if tiempo_mostrado > tiempo_total:
-                tiempo_mostrado = tiempo_total
-        except ValueError:
-            tiempo_mostrado = tiempo_total
 
+    # Si el tiempo seleccionado es mayor que el tiempo total, agregamos pasos adicionales con "No hace nada"
     resultados_filtrados = CustomList()
-    for i in range(resultados.size()):
-        if i < tiempo_mostrado:
+    if tiempo_mostrado > tiempo_total:
+        # Mostrar todos los resultados normales
+        for i in range(resultados.size()):
+            resultados_filtrados.add(resultados.get(i))
+        
+        # Añadir "No hace nada" en los tiempos adicionales
+        for t in range(tiempo_total + 1, tiempo_mostrado + 1):
+            fila_tiempo = Resultado(f"{t}{'er' if t == 1 else 'do' if t == 2 else 'er'}. Segundo", CustomList())
+            for _ in range(num_lineas):
+                fila_tiempo.lineas.add("No hace nada")
+            resultados_filtrados.add(fila_tiempo)
+    else:
+        # Solo mostrar hasta el tiempo seleccionado
+        for i in range(min(tiempo_mostrado, resultados.size())):
             resultados_filtrados.add(resultados.get(i))
 
-   # Después de procesar los resultados, generar el grafo
+    # Generar el grafo de ensamblaje
     instrucciones_originales = CustomList()
     elaboracion_list = CustomList()
     for paso in elaboracion:
@@ -333,8 +341,6 @@ def construir():
     
     for i in range(elaboracion_list.size()):
         instrucciones_originales.add(elaboracion_list.get(i))
-    
-    tiempo_mostrado = tiempo_total if tiempo_seleccionado.lower() == 'optimo' else int(tiempo_seleccionado)
     
     dot = generate_assembly_graph(instrucciones_originales, tiempo_mostrado, tiempo_total, resultados_filtrados)
     if dot:
@@ -352,6 +358,7 @@ def construir():
                           tiempo_total=tiempo_total,
                           tiempo_mostrado=tiempo_mostrado,
                           graph_image=graph_image) 
+
 
 def obtener_linea_y_componente(paso):
     linea = ""

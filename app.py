@@ -77,7 +77,7 @@ def archivo():
     
 
 def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_total, resultados):
-    if tiempo_actual > tiempo_total:
+    if tiempo_actual >= tiempo_total:
         return None
 
     # Crear el grafo

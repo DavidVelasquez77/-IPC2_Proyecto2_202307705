@@ -84,17 +84,17 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
     dot = Digraph(comment='Pending Assembly Steps')
     dot.attr(rankdir='LR')
 
-    # Listas personalizadas para los pasos pendientes y conteo de ensamblajes
+    # Listas personalizadas
     pasos_pendientes = CustomList()
     componentes_necesarios = CustomList()
     componentes_realizados = CustomList()
+    componentes_ensamblando_actual = CustomList()  # Nueva lista para componentes siendo ensamblados en el tiempo actual
 
-    # Primero, contar cuántos ensamblajes necesita cada componente
+    # Contar cuántos ensamblajes necesita cada componente
     for i in range(instrucciones_originales.size()):
         paso = instrucciones_originales.get(i)
         componente = obtener_componente_de_paso(paso)
         
-        # Buscar si ya existe este componente en la lista
         encontrado = False
         for j in range(componentes_necesarios.size()):
             comp = componentes_necesarios.get(j)
@@ -103,20 +103,28 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
                 encontrado = True
                 break
         
-        # Si no se encontró, agregar nuevo
         if not encontrado:
             nuevo_comp = ComponenteContador(componente, 1)
             componentes_necesarios.add(nuevo_comp)
 
-    # Luego, contar cuántos ensamblajes se han realizado
+    # Procesar resultados y identificar componentes en ensamblaje actual
     for i in range(resultados.size()):
         resultado = resultados.get(i)
+        
+        # Reiniciar la lista de componentes en ensamblaje actual para cada nuevo tiempo
+        if i == resultados.size() - 1:  # Si estamos en el último resultado (tiempo actual)
+            componentes_ensamblando_actual = CustomList()
+        
         for j in range(resultado.lineas.size()):
             accion = resultado.lineas.get(j)
             if "Ensamblar" in accion:
                 componente = obtener_componente_de_accion(accion)
                 
-                # Buscar si ya existe este componente en la lista de realizados
+                # Si estamos en el último resultado, añadir a la lista de ensamblaje actual
+                if i == resultados.size() - 1:
+                    componentes_ensamblando_actual.add(componente)
+                
+                # Actualizar componentes realizados
                 encontrado = False
                 for k in range(componentes_realizados.size()):
                     comp = componentes_realizados.get(k)
@@ -125,7 +133,6 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
                         encontrado = True
                         break
                 
-                # Si no se encontró, agregar nuevo
                 if not encontrado:
                     nuevo_comp = ComponenteContador(componente, 1)
                     componentes_realizados.add(nuevo_comp)
@@ -135,7 +142,19 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
         paso = instrucciones_originales.get(i)
         componente_actual = obtener_componente_de_paso(paso)
         
-        # Obtener cantidad necesaria y realizada para este componente
+        # Verificar si el componente está siendo ensamblado actualmente
+        esta_ensamblando_actual = False
+        for j in range(componentes_ensamblando_actual.size()):
+            if componentes_ensamblando_actual.get(j) == componente_actual:
+                esta_ensamblando_actual = True
+                break
+
+        # Si el componente está siendo ensamblado actualmente, añadir el paso
+        if esta_ensamblando_actual:
+            pasos_pendientes.add(paso)
+            continue
+
+        # Si no está siendo ensamblado actualmente, verificar si aún necesita más ensamblajes
         cantidad_necesaria = 0
         cantidad_realizada = 0
         
@@ -151,7 +170,6 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
                 cantidad_realizada = comp.cantidad
                 break
         
-        # Si faltan ensamblajes, agregar a pendientes
         if cantidad_realizada < cantidad_necesaria:
             pasos_pendientes.add(paso)
 
@@ -168,14 +186,13 @@ def generate_assembly_graph(instrucciones_originales, tiempo_actual, tiempo_tota
     
     return dot
 
-# Clase auxiliar para contar componentes
+# Las clases auxiliares y funciones adicionales permanecen igual
 class ComponenteContador:
     def __init__(self, componente, cantidad):
         self.componente = componente
         self.cantidad = cantidad
 
 def obtener_componente_de_accion(accion):
-    # Extraer el número de componente de una acción como "Ensamblar - Componente 2"
     partes = accion.split()
     for parte in partes:
         if parte.isdigit():
@@ -183,10 +200,8 @@ def obtener_componente_de_accion(accion):
     return None
 
 def obtener_componente_de_paso(paso):
-    # Extraer el número de componente de un paso como "L1C2"
     _, componente = obtener_linea_y_componente(paso)
     return componente
-
 
 
 @app.route('/construir', methods=['POST'])
@@ -301,12 +316,7 @@ def construir():
         try:
             tiempo_mostrado = int(tiempo_seleccionado)
             if tiempo_mostrado > tiempo_total:
-                # Crear resultados vacíos para el tiempo extra
-                for i in range(tiempo_total + 1, tiempo_mostrado + 1):
-                    fila_tiempo = Resultado(f"{i}er. Segundo", CustomList())
-                    for _ in range(num_lineas):
-                        fila_tiempo.lineas.add("No hace nada")
-                    resultados.add(fila_tiempo)
+                tiempo_mostrado = tiempo_total
         except ValueError:
             tiempo_mostrado = tiempo_total
 
@@ -315,7 +325,7 @@ def construir():
         if i < tiempo_mostrado:
             resultados_filtrados.add(resultados.get(i))
 
-    # Después de procesar los resultados, generar el grafo
+   # Después de procesar los resultados, generar el grafo
     instrucciones_originales = CustomList()
     elaboracion_list = CustomList()
     for paso in elaboracion:
@@ -341,8 +351,8 @@ def construir():
                           producto_seleccionado=producto_seleccionado,
                           tiempo_total=tiempo_total,
                           tiempo_mostrado=tiempo_mostrado,
-                          graph_image=graph_image)
-    
+                          graph_image=graph_image) 
+
 def obtener_linea_y_componente(paso):
     linea = ""
     componente = ""

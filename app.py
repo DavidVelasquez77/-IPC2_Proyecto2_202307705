@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
 import xml.etree.ElementTree as ET
 from utils import CustomList, Resultado, Nodo
 import io
+import os
 from graphviz import Digraph
 import xml.dom.minidom
 
@@ -222,7 +223,7 @@ def generar_xml_salida():
     for i in range(global_maquinas.size()):
         info_maquina = global_maquinas.get(i)
         nombre_maquina = info_maquina.get(0)
-        productos = info_maquina.get(1)  # Este es un CustomList
+        productos = info_maquina.get(1)  
         
         # Crear elemento de máquina
         elem_maquina = ET.SubElement(raiz, "Maquina")
@@ -474,7 +475,6 @@ def construir():
                           tiempo_mostrado=tiempo_mostrado,
                           graph_image=graph_image)
 
-
 def obtener_linea_y_componente(paso):
     linea = ""
     componente = ""
@@ -500,6 +500,39 @@ def reportes():
 @app.route('/ayuda')
 def ayuda():
     return render_template('ayuda.html')
+
+@app.route('/descargar-reporte')
+def descargar_reporte():
+    # Crear un StringIO para almacenar el contenido HTML renderizado
+    html_content = render_template('reportes.html', historial=global_historial)
+    
+    # Crear un objeto BytesIO para enviar el archivo
+    buffer = io.BytesIO()
+    buffer.write(html_content.encode('utf-8'))
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='text/html',
+        as_attachment=True,
+        download_name='reporte_ensamblaje.html'
+    )
+    
+@app.route('/descargar-xml')
+def descargar_xml():
+    try:
+        xml_path = 'static/simulacion_salida.xml'
+        if os.path.exists(xml_path):
+            return send_file(
+                xml_path,
+                mimetype='application/xml',
+                as_attachment=True,
+                download_name='simulacion_salida.xml'
+            )
+        else:
+            return "No se ha generado ningún archivo XML de salida.", 404
+    except Exception as e:
+        return f"Error al descargar el archivo: {str(e)}", 500
 
 @app.route('/reset', methods=['POST'])
 def reset():

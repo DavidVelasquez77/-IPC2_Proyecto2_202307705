@@ -28,6 +28,44 @@
         .tabla-ensamblaje table {
             min-width: 100%;
         }
+        .download-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: row; /* Cambiado a row para disposición horizontal */
+            gap: 10px;
+            z-index: 1000;
+        }
+        .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap; /* Evita que el texto se rompa */
+        }
+        .download-btn.xml {
+            background-color: #2196F3;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        .download-btn.html:hover {
+            background-color: #45a049;
+        }
+        .download-btn.xml:hover {
+            background-color: #1976D2;
+        }
+        .download-btn i {
+            margin-right: 8px;
+        }
     </style>
 </head>
 
@@ -116,6 +154,19 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Botones de descarga flotantes -->
+    <div class="download-buttons">
+        <a href="/descargar-reporte" class="download-btn html">
+            <i class="fas fa-download"></i>
+            Descargar Reporte HTML
+        </a>
+        <a href="/descargar-xml" class="download-btn xml">
+            <i class="fas fa-file-code"></i>
+            Descargar XML de Salida 
+        </a>
+    </div>
+
 </body>
 
 </html>

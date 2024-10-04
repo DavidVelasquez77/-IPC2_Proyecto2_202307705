@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from utils import CustomList, Resultado, Nodo
 import io
 from graphviz import Digraph
+import xml.dom.minidom
 
 app = Flask(__name__)
 app.secret_key = 'una_clave_secreta_muy_segura'  # Necesario para usar sesiones
@@ -213,6 +214,98 @@ class HistorialEntry:
         self.tiempo_total = tiempo_total
         self.resultados = resultados
 
+def generar_xml_salida():
+    # Crear el elemento raíz
+    raiz = ET.Element("SalidaSimulacion")
+    
+    # Para cada máquina en global_maquinas
+    for i in range(global_maquinas.size()):
+        info_maquina = global_maquinas.get(i)
+        nombre_maquina = info_maquina.get(0)
+        productos = info_maquina.get(1)  # Este es un CustomList
+        
+        # Crear elemento de máquina
+        elem_maquina = ET.SubElement(raiz, "Maquina")
+        elem_nombre = ET.SubElement(elem_maquina, "Nombre")
+        elem_nombre.text = nombre_maquina
+        
+        # Crear listado de productos
+        listado_productos = ET.SubElement(elem_maquina, "ListadoProductos")
+        
+        # Encontrar resultados de simulación para cada producto en global_historial
+        for j in range(global_historial.size()):
+            entrada_historial = global_historial.get(j)
+            
+            if entrada_historial.maquina == nombre_maquina:
+                # Crear elemento de producto
+                elem_producto = ET.SubElement(listado_productos, "Producto")
+                
+                # Añadir nombre del producto
+                nombre_producto = ET.SubElement(elem_producto, "Nombre")
+                nombre_producto.text = entrada_historial.producto
+                
+                # Añadir tiempo total
+                tiempo_total = ET.SubElement(elem_producto, "TiempoTotal")
+                tiempo_total.text = str(entrada_historial.tiempo_total)
+                
+                # Crear elemento de elaboración óptima
+                elaboracion_optima = ET.SubElement(elem_producto, "ElaboracionOptima")
+                
+                # Añadir pasos de tiempo
+                for k in range(entrada_historial.resultados.size()):
+                    resultado = entrada_historial.resultados.get(k)
+                    elem_tiempo = ET.SubElement(elaboracion_optima, "Tiempo")
+                    elem_tiempo.set("NoSegundo", str(k + 1))
+                    
+                    # Añadir líneas de ensamblaje
+                    for l in range(resultado.lineas.size()):
+                        elem_linea = ET.SubElement(elem_tiempo, "LineaEnsamblaje")
+                        elem_linea.set("NoLinea", str(l + 1))
+                        elem_linea.text = resultado.lineas.get(l)
+    
+    # Crear cadena XML y formatearla
+    xml_str = ET.tostring(raiz, encoding='unicode', method='xml')
+    xml_formateado = formatear_xml(xml_str)
+    
+    # Guardar en archivo
+    ruta_archivo = 'static/simulacion_salida.xml'
+    escribir_archivo(ruta_archivo, xml_formateado)
+    
+    return xml_formateado
+
+def formatear_xml(xml_str):
+    """Función para formatear la cadena XML con indentación adecuada"""
+    dom = xml.dom.minidom.parseString(xml_str)
+    xml_formateado = dom.toprettyxml(indent='  ')
+    
+    # Convertir el resultado en una lista de líneas
+    lineas = CustomList()
+    for linea in xml_formateado.split('\n'):
+        lineas.add(linea)
+    
+    # Crear el resultado final
+    resultado = CustomList()
+    resultado.add('<?xml version="1.0"?>')
+    
+    for i in range(1, lineas.size()):
+        linea = lineas.get(i)
+        if linea.strip():  # Si la línea no está vacía
+            resultado.add(linea)
+    
+    # Unir todas las líneas con saltos de línea
+    salida_final = ''
+    for i in range(resultado.size()):
+        salida_final += resultado.get(i)
+        if i < resultado.size() - 1:
+            salida_final += '\n'
+    
+    return salida_final
+
+def escribir_archivo(ruta, contenido):
+    """Función para escribir el contenido en un archivo"""
+    with open(ruta, 'w', encoding='utf-8') as f:
+        f.write(contenido)
+
 @app.route('/construir', methods=['POST'])
 def construir():
     global global_maquinas
@@ -369,6 +462,8 @@ def construir():
         resultados_filtrados
     )
     global_historial.add(entrada_historial)
+    
+    generar_xml_salida()
     
     return render_template('archivo.html', 
                           resultados=resultados_filtrados, 
